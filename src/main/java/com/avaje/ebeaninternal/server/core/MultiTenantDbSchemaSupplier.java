@@ -11,11 +11,14 @@ import java.sql.Connection;
 import java.sql.SQLException;
 import java.sql.SQLFeatureNotSupportedException;
 import java.util.logging.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * DataSource supplier that changes DB schema based on current Tenant Id.
  */
 class MultiTenantDbSchemaSupplier implements DataSourceSupplier {
+
+  private static final org.slf4j.Logger log = LoggerFactory.getLogger(BeanRequest.class);
 
   private final CurrentTenantProvider tenantProvider;
 
@@ -26,6 +29,7 @@ class MultiTenantDbSchemaSupplier implements DataSourceSupplier {
   private final SchemaDataSource schemaDataSource;
 
   MultiTenantDbSchemaSupplier(CurrentTenantProvider tenantProvider, DataSource dataSource, TenantSchemaProvider schemaProvider) {
+    log.debug("Using modified version of MultiTenantDbSchemaSupplier with catalog support.");
     this.tenantProvider = tenantProvider;
     this.dataSource = dataSource;
     this.schemaProvider = schemaProvider;
@@ -66,7 +70,7 @@ class MultiTenantDbSchemaSupplier implements DataSourceSupplier {
      */
     Connection getConnectionForTenant(Object tenantId) throws SQLException {
       Connection connection = dataSource.getConnection();
-      connection.setSchema(schemaProvider.schema(tenantId));
+      connection.setCatalog(schemaProvider.schema(tenantId));
       return connection;
     }
 
@@ -77,7 +81,7 @@ class MultiTenantDbSchemaSupplier implements DataSourceSupplier {
     public Connection getConnection() throws SQLException {
 
       Connection connection = dataSource.getConnection();
-      connection.setSchema(tenantSchema());
+      connection.setCatalog(tenantSchema());
       return connection;
     }
 
